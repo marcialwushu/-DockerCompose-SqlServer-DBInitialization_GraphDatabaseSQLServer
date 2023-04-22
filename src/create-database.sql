@@ -10,19 +10,9 @@ CREATE TABLE ofac (
 ) AS NODE;
 GO
 
-CREATE TABLE names_verify (
-    id INT PRIMARY KEY,
-    name VARCHAR(255)
-) AS NODE;
-GO
 
-CREATE TABLE ofac_match (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    ofac_node_id INT REFERENCES ofac(id),
-    names_verify_node_id INT REFERENCES names_verify(id),
-    data_verify DATETIME,
-    score FLOAT
-) AS EDGE;
+CREATE TABLE dbo.ofac_match (start_date DATE) AS EDGE;
+
 GO
 
 INSERT INTO ofac (id, name)
@@ -30,7 +20,14 @@ VALUES (1, 'João Silva'),
        (2, 'Maria Santos'),
        (3, 'José Almeida'),
        (4, 'Fulano de Tal'),
-       (5, 'Ciclano da Silva');
+       (5, 'Ciclano da Silva'),
+       (6, 'João Sillva'),
+       (7, 'Joao'),
+       (8, 'Silva'),
+       (9, 'Fulano'),
+       (10, 'de Tal');
+       
+       
 
 -- Inserindo dados na tabela nomes_verificar
 INSERT INTO names_verify (id, name)
@@ -39,6 +36,16 @@ VALUES (1, 'João Sillva'),
        (3, 'Beltrano Perera');
 GO
 
+INSERT INTO dbo.ofac_match VALUES ((SELECT $node_id FROM [dbo].[ofac] WHERE [name] = 'João Silva'),
+       (SELECT $node_id FROM [dbo].[ofac] WHERE [name] = 'Joao'), GETDATE());
+
+INSERT INTO dbo.ofac_match VALUES ((SELECT $node_id FROM [dbo].[ofac] WHERE [name] = 'João Silva'),
+       (SELECT $node_id FROM [dbo].[ofac] WHERE [name] = 'João Sillva'), GETDATE());
 
 
+
+SELECT Person2.name AS OfacName
+FROM ofac Person1, ofac_match, ofac Person2
+WHERE MATCH(Person1-(ofac_match)->Person2)
+AND Person1.name = 'João Silva';
 
